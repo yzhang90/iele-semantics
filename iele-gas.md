@@ -194,8 +194,13 @@ The memory cost of assigning a register or immediate to a register is the cost a
 resizing the register to equal the value being assigned.
 
 ```k
-    rule <k> #memory [ DEST = % SRC:Int ] => #registerDelta(DEST, intSize(getInt(REGS [ SRC ]))) ... </k>
+    rule <k> #memory [ DEST = % SRC:Int ] => #registerDelta(DEST, intSize(getInt(VALUE))) ... </k>
+         <regs> ... SRC |-> VALUE ... </regs>
+
+    rule <k> #memory [ DEST = % SRC:Int ] => #registerDelta(DEST, intSize(0)) ... </k>
          <regs> REGS </regs>
+      requires notBool SRC in_keys(REGS)
+
     rule <k> #memory [ DEST = SRC:Int ] => #registerDelta(DEST, intSize(SRC)) ... </k>
 ```
 
@@ -341,8 +346,14 @@ which is maintained by the next rules.
  // -----------------------------------------------------
     rule <k> #registerDelta(% REG, NEWSIZE) => #deductMemory(PEAK) ... </k>
          <currentMemory> CURR </currentMemory>
+         <regs> ... REG |-> VALUE ... </regs>
+         <peakMemory> PEAK => maxInt(PEAK, CURR +Int NEWSIZE -Int intSize(getInt(VALUE))) </peakMemory>
+
+    rule <k> #registerDelta(% REG, NEWSIZE) => #deductMemory(PEAK) ... </k>
+         <currentMemory> CURR </currentMemory>
          <regs> REGS </regs>
-         <peakMemory> PEAK => maxInt(PEAK, CURR +Int NEWSIZE -Int intSize(getInt(REGS [ REG ]))) </peakMemory>
+         <peakMemory> PEAK => maxInt(PEAK, CURR +Int NEWSIZE -Int intSize(0)) </peakMemory>
+      requires notBool REG in_keys(REGS)
 ```
 
 -   `#registerDeltas` invokes `#registerDelta` on a sequence of registers and values, using their exact size. This form is invoked when
@@ -543,9 +554,13 @@ Each of these operations pays a constant cost to look up information about an ac
 The cost to load a value into a register is simply the cost to copy its value.
 
 ```k
-    rule <k> #compute [ DEST = % SRC:Int, SCHED ] => Gmove < SCHED > *Int intSize(getInt(REGS [ SRC ])) ... </k>
+    rule <k> #compute [ DEST = % SRC:Int, SCHED ] => Gmove < SCHED > *Int intSize(getInt(VALUE)) ... </k>
+         <regs> ... SRC |-> VALUE ... </regs>
+     requires notBool Gnewmove << SCHED >>
+
+    rule <k> #compute [ DEST = % SRC:Int, SCHED ] => Gmove < SCHED > *Int intSize(0) ... </k>
          <regs> REGS </regs>
-      requires notBool Gnewmove << SCHED >>
+      requires notBool(Gnewmove << SCHED >>) andBool notBool(SRC in_keys(REGS))
 
     rule <k> #compute [ DEST = % SRC:Int, SCHED ] => Gmove < SCHED > ... </k>
          <regs> REGS </regs>

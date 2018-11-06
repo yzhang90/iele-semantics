@@ -112,6 +112,7 @@ Primitives provide the basic conversion from K's sorts `Int` and `Bool` to IELE'
  // ------------------------------------------------------------------------------------
     syntax String ::= StringIeleName2String ( StringIeleName ) [function, hook(STRING.token2string)]
  // ------------------------------------------------------------------------------------------------
+    rule String2IeleName(S:String) => {#parseToken("IeleName", S)}:>IeleName
 
     syntax Int ::= getInt(K) [function]
     syntax IeleName ::= getIeleName(K) [function]
@@ -152,12 +153,13 @@ You could alternatively calculate `I1 %Int I2`, then add one to the normal integ
     rule intSizes(.Ints) => 0
     rule intSizes(I , INTS) => intSize(I) +Int intSizes(INTS)
 
-    syntax Int ::= intSizes ( Array , Int ) [function, klabel(intSizesArr)]
-                 | intSizes ( Array , Int , Int ) [function, klabel(intSizesAux)]
+    syntax Int ::= intSizes ( Map , Int ) [function, klabel(intSizesArr)]
+                 | intSizes ( Map , Int , Int ) [function, klabel(intSizesAux)]
  // -----------------------------------------------------------------------------
-    rule intSizes(ARR::Array, I) => intSizes(ARR, I, 0)
-    rule intSizes(ARR::Array, I, I) => 0
-    rule intSizes(ARR, I, J) => getInt(ARR [ J ]) +Int intSizes(ARR, I, J +Int 1) [owise]
+    rule intSizes(ARR::Map, I) => intSizes(ARR, I, 0)
+    rule intSizes(ARR::Map, I, I) => 0
+    rule intSizes(ARR, I, J) => intSize(getInt(ARR [ J ])) +Int intSizes(ARR, I, J +Int 1)  requires J <Int I andBool J in_keys(ARR)
+    rule intSizes(ARR, I, J) => intSize(0)                 +Int intSizes(ARR, I, J +Int 1)  requires J <Int I andBool notBool(J in_keys(ARR))
 
     syntax Int ::= bitsInWords ( Int , Schedule ) [function]
  // ---------------------------------------------
@@ -438,17 +440,16 @@ These parsers can interperet hex-encoded strings as `Int`s, `WordStack`s, and `M
     rule #parseWord(S)  => #parseHexWord(S) requires lengthString(S) >=Int 2 andBool substrString(S, 0, 2) ==String "0x"
     rule #parseWord(S)  => String2Int(S) [owise]
 
-    syntax WordStack ::= #parseByteStack ( String )    [function]
-                       | #parseByteStack ( String , WordStack , Int , Int ) [function, klabel(#parseByteStackAux)]
+    syntax WordStack ::= #parseHexBytes  ( String ) [function]
+                       | #parseByteStack ( String ) [function]
                        | #parseByteStackRaw ( String ) [function]
-                       | #parseByteStackRaw ( String , WordStack , Int , Int ) [function, klabel(#parseByteStackRawAux)]
- // --------------------------------------------------------------------------------------------------------------------
-    rule #parseByteStack(S) => #fun(STR => #parseByteStack(STR, .WordStack, 0, lengthString(STR)))(replaceAll(S, "0x", ""))
-    rule #parseByteStack(_, WS, LEN, LEN) => #rev(WS, .WordStack)
-    rule #parseByteStack(S, WS, I, LEN)  => #parseByteStack(S, #parseHexWord(substrString(S, I, I +Int 2)) : WS, I +Int 2, LEN) [owise]
-    rule #parseByteStackRaw(S) => #parseByteStackRaw(S, .WordStack, 0, lengthString(S))
-    rule #parseByteStackRaw(S, WS, LEN, LEN) => #rev(WS, .WordStack)
-    rule #parseByteStackRaw(S, WS, I, LEN) => #parseByteStackRaw(S, ordChar(substrString(S, I, I +Int 1)) : WS, I +Int 1, LEN) [owise]
+ // ----------------------------------------------------------
+    rule #parseByteStack(S) => #parseHexBytes(replaceAll(S, "0x", ""))
+    rule #parseHexBytes("") => .WordStack
+    rule #parseHexBytes(S)  => #parseHexWord(substrString(S, 0, 2)) : #parseHexBytes(substrString(S, 2, lengthString(S))) requires lengthString(S) >=Int 2
+
+    rule #parseByteStackRaw(S) => ordChar(substrString(S, 0, 1)) : #parseByteStackRaw(substrString(S, 1, lengthString(S))) requires lengthString(S) >=Int 1
+    rule #parseByteStackRaw("") => .WordStack
 
     syntax Map ::= #parseMap ( JSON ) [function]
  // --------------------------------------------

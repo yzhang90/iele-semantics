@@ -115,10 +115,10 @@ Simple copy assignment that loads a value into a register.
 Instructions that provide access to the local execution memory. For more details see [here](Design.md#local-execution-memory).
 
 ```k
-  syntax LoadInst ::= LValue "=" "load" /* cell */ Operand [hybrid, strict(2)]
-  syntax LoadInst ::= LValue "=" "load" /* cell */ Operand "," /* offset in bytes */ Operand "," /* width in bytes */ Operand [hybrid, seqstrict(2,3,4)]
-  syntax StoreInst ::= "store" /* value */ Operand "," /* cell */ Operand [hybrid, seqstrict(1,2)]
-  syntax StoreInst ::= "store" /* value */ Operand "," /* cell */ Operand "," /* offset in bytes */ Operand "," /* width in bytes */ Operand [hybrid, seqstrict(1,2,3,4)]
+  syntax LoadInst ::= LValue "=" "load" /* cell */ Operand [strict(2)]
+  syntax LoadInst ::= LValue "=" "load" /* cell */ Operand "," /* offset in bytes */ Operand "," /* width in bytes */ Operand [seqstrict(2,3,4)]
+  syntax StoreInst ::= "store" /* value */ Operand "," /* cell */ Operand [seqstrict(1,2)]
+  syntax StoreInst ::= "store" /* value */ Operand "," /* cell */ Operand "," /* offset in bytes */ Operand "," /* width in bytes */ Operand [seqstrict(1,2,3,4)]
 ```
 
 ### Account Storage
@@ -126,8 +126,8 @@ Instructions that provide access to the local execution memory. For more details
 Instructions that provide access to the account storage. For more details see [here](Design.md#account-storage).
 
 ```k
-  syntax SLoadInst ::= LValue "=" "sload" /* index */ Operand [hybrid, strict(2)]
-  syntax SStoreInst ::= "sstore" /* value */ Operand "," /* index */ Operand [hybrid, seqstrict(1,2)]
+  syntax SLoadInst ::= LValue "=" "sload" /* index */ Operand [strict(2)]
+  syntax SStoreInst ::= "sstore" /* value */ Operand "," /* index */ Operand [seqstrict(1,2)]
 ```
 
 ### Expressions
@@ -135,35 +135,35 @@ Instructions that provide access to the account storage. For more details see [h
 Various expressions over unbounded signed integers. For more details see [here](Design.md#arbitrary-precision-words).
 
 ```k
-  syntax IsZeroInst ::= LValue "=" "iszero" Operand [hybrid, strict(2)]
-  syntax NotInst    ::= LValue "=" "not"    Operand [hybrid, strict(2)]
+  syntax IsZeroInst ::= LValue "=" "iszero" Operand [strict(2)]
+  syntax NotInst    ::= LValue "=" "not"    Operand [strict(2)]
 
-  syntax AddInst ::= LValue "=" "add" Operand "," Operand [hybrid, seqstrict(2,3)]
-  syntax MulInst ::= LValue "=" "mul" Operand "," Operand [hybrid, seqstrict(2,3)]
-  syntax SubInst ::= LValue "=" "sub" Operand "," Operand [hybrid, seqstrict(2,3)]
-  syntax DivInst ::= LValue "=" "div" Operand "," Operand [hybrid, seqstrict(2,3)]
-  syntax ExpInst ::= LValue "=" "exp" Operand "," Operand [hybrid, seqstrict(2,3)]
-  syntax ModInst ::= LValue "=" "mod" Operand "," Operand [hybrid, seqstrict(2,3)]
+  syntax AddInst ::= LValue "=" "add" Operand "," Operand [seqstrict(2,3)]
+  syntax MulInst ::= LValue "=" "mul" Operand "," Operand [seqstrict(2,3)]
+  syntax SubInst ::= LValue "=" "sub" Operand "," Operand [seqstrict(2,3)]
+  syntax DivInst ::= LValue "=" "div" Operand "," Operand [seqstrict(2,3)]
+  syntax ExpInst ::= LValue "=" "exp" Operand "," Operand [seqstrict(2,3)]
+  syntax ModInst ::= LValue "=" "mod" Operand "," Operand [seqstrict(2,3)]
 
-  syntax AddModInst ::= LValue "=" "addmod" Operand "," Operand "," Operand [hybrid, seqstrict(2,3,4)]
-  syntax MulModInst ::= LValue "=" "mulmod" Operand "," Operand "," Operand [hybrid, seqstrict(2,3,4)]
-  syntax ExpModInst ::= LValue "=" "expmod" Operand "," Operand "," Operand [hybrid, seqstrict(2,3,4)]
+  syntax AddModInst ::= LValue "=" "addmod" Operand "," Operand "," Operand [seqstrict(2,3,4)]
+  syntax MulModInst ::= LValue "=" "mulmod" Operand "," Operand "," Operand [seqstrict(2,3,4)]
+  syntax ExpModInst ::= LValue "=" "expmod" Operand "," Operand "," Operand [seqstrict(2,3,4)]
 
-  syntax LogInst   ::= LValue "=" "log2"                                    Operand             [hybrid, strict(2)]
-  syntax ByteInst  ::= LValue "=" "byte"  /* byte index, 0 being the LSB */ Operand "," Operand [hybrid, seqstrict(2,3)]
-  syntax SExtInst  ::= LValue "=" "sext"  /* width in bytes */              Operand "," Operand [hybrid, seqstrict(2,3)]
-  syntax TwosInst  ::= LValue "=" "twos"  /* width in bytes */              Operand "," Operand [hybrid, seqstrict(2,3)]
-  syntax BswapInst ::= LValue "=" "bswap" /* width in bytes */              Operand "," Operand [hybrid, seqstrict(2,3)]
+  syntax LogInst   ::= LValue "=" "log2"                                    Operand             [strict(2)]
+  syntax ByteInst  ::= LValue "=" "byte"  /* byte index, 0 being the LSB */ Operand "," Operand [seqstrict(2,3)]
+  syntax SExtInst  ::= LValue "=" "sext"  /* width in bytes */              Operand "," Operand [seqstrict(2,3)]
+  syntax TwosInst  ::= LValue "=" "twos"  /* width in bytes */              Operand "," Operand [seqstrict(2,3)]
+  syntax BswapInst ::= LValue "=" "bswap" /* width in bytes */              Operand "," Operand [seqstrict(2,3)]
 
-  syntax AndInst   ::= LValue "=" "and"   Operand "," Operand [hybrid, seqstrict(2,3)]
-  syntax OrInst    ::= LValue "=" "or"    Operand "," Operand [hybrid, seqstrict(2,3)]
-  syntax XorInst   ::= LValue "=" "xor"   Operand "," Operand [hybrid, seqstrict(2,3)]
-  syntax ShiftInst ::= LValue "=" "shift" Operand "," /* shift amount */ Operand [hybrid, seqstrict(2,3)]
+  syntax AndInst   ::= LValue "=" "and"   Operand "," Operand [seqstrict(2,3)]
+  syntax OrInst    ::= LValue "=" "or"    Operand "," Operand [seqstrict(2,3)]
+  syntax XorInst   ::= LValue "=" "xor"   Operand "," Operand [seqstrict(2,3)]
+  syntax ShiftInst ::= LValue "=" "shift" Operand "," /* shift amount */ Operand [seqstrict(2,3)]
 
   syntax Predicate ::= "lt" | "le" | "gt" | "ge" | "eq" | "ne"
-  syntax CmpInst ::= LValue "=" "cmp" Predicate Operand "," Operand [hybrid, seqstrict(3,4)]
+  syntax CmpInst ::= LValue "=" "cmp" Predicate Operand "," Operand [seqstrict(3,4)]
 
-  syntax SHA3Inst ::= LValue "=" "sha3" Operand [hybrid, strict(2)]
+  syntax SHA3Inst ::= LValue "=" "sha3" Operand [strict(2)]
 ```
 
 ### Static Jumps
@@ -172,7 +172,7 @@ Instructions for conditional and unconditional jumps within the function's body.
 
 ```k
   syntax JumpInst     ::= "br" IeleName
-  syntax CondJumpInst ::= "br" Operand "," IeleName [hybrid, strict(1)]
+  syntax CondJumpInst ::= "br" Operand "," IeleName [strict(1)]
 ```
 
 ### Function Calls and Returns
@@ -181,15 +181,15 @@ Instructions for local functions calls to other functions of the same contract, 
 
 ```k
   syntax LocalCallInst   ::= "call" Operand "(" Operands ")"
-                           | LValues "=" "call" Operand "(" Operands ")" [hybrid, strict(2,3)]
-  syntax AccountCallInst ::= LValues "=" "call" Operand "at" Operand "(" Operands ")" "send" Operand "," "gaslimit" Operand [hybrid, seqstrict(2,3,4,5,6)]
-  syntax AccountCallInst ::= LValues "=" "staticcall" Operand "at" Operand "(" Operands ")" "gaslimit" Operand [hybrid, seqstrict(2,3,4,5)]
+                           | LValues "=" "call" Operand "(" Operands ")" [strict(2,3)]
+  syntax AccountCallInst ::= LValues "=" "call" Operand "at" Operand "(" Operands ")" "send" Operand "," "gaslimit" Operand [seqstrict(2,3,4,5,6)]
+  syntax AccountCallInst ::= LValues "=" "staticcall" Operand "at" Operand "(" Operands ")" "gaslimit" Operand [seqstrict(2,3,4,5)]
 
-  syntax CallAddressInst ::= LValue "=" "calladdress" GlobalName "at" Operand [hybrid, strict(3)]
+  syntax CallAddressInst ::= LValue "=" "calladdress" GlobalName "at" Operand [strict(3)]
 
-  syntax ReturnInst ::= "ret" NonEmptyOperands [hybrid, strict(1)]
+  syntax ReturnInst ::= "ret" NonEmptyOperands [strict(1)]
                       | "ret" "void"
-  syntax RevertInst ::= "revert" Operand [hybrid, strict(1)]
+  syntax RevertInst ::= "revert" Operand [strict(1)]
 ```
 
 ### Logging
@@ -197,8 +197,8 @@ Instructions for local functions calls to other functions of the same contract, 
 Instructions to append information to the substate log. These variations append the entire content of a local execution memory cell to the log along with zero to four log topics.
 
 ```k
-  syntax LogInst ::= "log" /* cell */ Operand [hybrid, strict(1)]
-                   | "log" /* cell */ Operand "," NonEmptyOperands [hybrid, seqstrict(1,2)]
+  syntax LogInst ::= "log" /* cell */ Operand [strict(1)]
+                   | "log" /* cell */ Operand "," NonEmptyOperands [seqstrict(1,2)]
 ```
 
 ### Account Creation and Deletion
@@ -206,11 +206,162 @@ Instructions to append information to the substate log. These variations append 
 Instructions to create and/or delete a new account with a contract deployed with it. For more details see [here](Design.md#contract-creation).
 
 ```k
-  syntax CreateInst ::= /* exit status */ LValue "," /* new account address */ LValue "=" "create"     /* contract name */    IeleName "(" Operands ")" "send" Operand [hybrid, seqstrict(4,5)]
-  syntax CreateInst ::= /* exit status */ LValue "," /* new account address */ LValue "=" "copycreate" /* contract address */ Operand  "(" Operands ")" "send" Operand [hybrid, seqstrict(3,4,5)]
+  syntax CreateInst ::= /* exit status */ LValue "," /* new account address */ LValue "=" "create"     /* contract name */    IeleName "(" Operands ")" "send" Operand [seqstrict(4,5)]
+  syntax CreateInst ::= /* exit status */ LValue "," /* new account address */ LValue "=" "copycreate" /* contract address */ Operand  "(" Operands ")" "send" Operand [seqstrict(3,4,5)]
 
-  syntax SelfdestructInst ::= "selfdestruct" /* account to send balance */ Operand [hybrid, strict(1)]
+  syntax SelfdestructInst ::= "selfdestruct" /* account to send balance */ Operand [strict(1)]
 ````
+
+Hybrid attribute desugaring
+============================
+
+```k
+  syntax LoadedLoadInst ::= LValue "=" "load" Constant
+  syntax LoadedLoadInst ::= LValue "=" "load" Constant "," Constant "," Constant
+  syntax KResult ::= LoadedLoadInst
+  syntax LoadInst ::= LoadedLoadInst
+
+  syntax LoadedStoreInst ::= "store" Constant "," Constant
+  syntax LoadedStoreInst ::= "store" Constant "," Constant "," Constant "," Constant
+  syntax KResult ::= LoadedStoreInst
+  syntax StoreInst ::= LoadedStoreInst
+
+  syntax LoadedSLoadInst ::= LValue "=" "sload" Constant
+  syntax KResult ::= LoadedSLoadInst
+  syntax SLoadInst ::= LoadedSLoadInst
+
+  syntax LoadedSStoreInst ::= "sstore" Constant "," Constant
+  syntax KResult ::= LoadedSStoreInst
+  syntax SStoreInst ::= LoadedSStoreInst
+
+  syntax LoadedIsZeroInst ::= LValue "=" "iszero" Constant
+  syntax KResult ::= LoadedIsZeroInst
+  syntax IsZeroInst ::= LoadedIsZeroInst
+
+  syntax LoadedNotInst    ::= LValue "=" "not" Constant
+  syntax KResult ::= LoadedNotInst
+  syntax NotInst ::= LoadedNotInst
+
+  syntax LoadedAddInst ::= LValue "=" "add" Constant "," Constant
+  syntax KResult ::= LoadedAddInst
+  syntax AddInst ::= LoadedAddInst
+
+  syntax LoadedMulInst ::= LValue "=" "mul" Constant "," Constant
+  syntax KResult ::= LoadedMulInst
+  syntax MulInst ::= LoadedMulInst
+
+  syntax LoadedSubInst ::= LValue "=" "sub" Constant "," Constant
+  syntax KResult ::= LoadedSubInst
+  syntax SubInst ::= LoadedSubInst
+
+  syntax LoadedDivInst ::= LValue "=" "div" Constant "," Constant
+  syntax KResult ::= LoadedDivInst
+  syntax DivInst ::= LoadedDivInst
+
+  syntax LoadedExpInst ::= LValue "=" "exp" Constant "," Constant
+  syntax KResult ::= LoadedExpInst
+  syntax ExpInst ::= LoadedExpInst
+
+  syntax LoadedModInst ::= LValue "=" "mod" Constant "," Constant
+  syntax KResult ::= LoadedModInst
+  syntax ModInst ::= LoadedModInst
+
+  syntax LoadedAddModInst ::= LValue "=" "addmod" Constant "," Constant "," Constant
+  syntax KResult ::= LoadedAddModInst
+  syntax AddModInst ::= LoadedAddModInst
+
+  syntax LoadedMulModInst ::= LValue "=" "mulmod" Constant "," Constant "," Constant
+  syntax KResult ::= LoadedMulModInst
+  syntax MulModInst ::= LoadedMulModInst
+
+  syntax LoadedExpModInst ::= LValue "=" "expmod" Constant "," Constant "," Constant
+  syntax KResult ::= LoadedExpModInst
+  syntax ExpModInst ::= LoadedExpModInst
+
+  syntax LoadedLogInst   ::= LValue "=" "log2"  Constant
+  syntax KResult ::= LoadedLogInst
+  syntax LogInst ::= LoadedLogInst
+
+  syntax LoadedByteInst  ::= LValue "=" "byte"  Constant "," Constant
+  syntax KResult ::= LoadedByteInst
+  syntax ByteInst ::= LoadedByteInst
+
+  syntax LoadedSExtInst  ::= LValue "=" "sext"  Constant "," Constant
+  syntax KResult ::= LoadedSExtInst
+  syntax SExtInst ::= LoadedSExtInst
+
+  syntax LoadedTwosInst  ::= LValue "=" "twos"  Constant "," Constant
+  syntax KResult ::= LoadedTwosInst
+  syntax TwosInst ::= LoadedTwosInst
+
+  syntax LoadedBswapInst ::= LValue "=" "bswap" Constant "," Constant
+  syntax KResult ::= LoadedBswapInst
+  syntax BswapInst ::= LoadedBswapInst
+
+  syntax LoadedAndInst   ::= LValue "=" "and"   Constant "," Constant
+  syntax KResult ::= LoadedAndInst
+  syntax AndInst ::= LoadedAndInst
+
+  syntax LoadedOrInst    ::= LValue "=" "or"    Constant "," Constant
+  syntax KResult ::= LoadedOrInst
+  syntax OrInst ::= LoadedOrInst
+
+  syntax LoadedXorInst   ::= LValue "=" "xor"   Constant "," Constant
+  syntax KResult ::= LoadedXorInst
+  syntax XorInst ::= LoadedXorInst
+
+  syntax LoadedShiftInst ::= LValue "=" "shift" Constant "," Constant
+  syntax KResult ::= LoadedShiftInst
+  syntax ShiftInst ::= LoadedShiftInst
+
+  syntax LoadedCmpInst ::= LValue "=" "cmp" Predicate Constant "," Constant
+  syntax KResult ::= LoadedCmpInst
+  syntax CmpInst ::= LoadedCmpInst
+
+  syntax LoadedSHA3Inst ::= LValue "=" "sha3" Constant
+  syntax KResult ::= LoadedSHA3Inst
+  syntax SHA3Inst ::= LoadedSHA3Inst
+
+  syntax LoadedCondJumpInst ::= "br" Constant "," IeleName
+  syntax KResult ::= LoadedCondJumpInst
+  syntax CondJumpInst ::= LoadedCondJumpInst
+
+  syntax LoadedLocalCallInst   ::= LValues "=" "call" Constant "(" Ints ")"
+  syntax KResult ::= LoadedLocalCallInst
+  syntax LocalCallInst ::= LoadedLocalCallInst
+
+  syntax LoadedAccountCallInst ::= LValues "=" "call" Constant "at" Constant "(" Ints ")" "send" Constant "," "gaslimit" Constant
+  syntax LoadedAccountCallInst ::= LValues "=" "staticcall" Constant "at" Constant "(" Ints ")" "gaslimit" Constant
+  syntax KResult ::= LoadedAccountCallInst
+  syntax AccountCallInst ::= LoadedAccountCallInst
+
+  syntax LoadedCallAddressInst ::= LValue "=" "calladdress" GlobalName "at" Constant
+  syntax KResult ::= LoadedCallAddressInst
+  syntax CallAddressInst ::= LoadedCallAddressInst
+
+  syntax LoadedReturnInst ::= "ret" Ints
+  syntax KResult ::= LoadedReturnInst
+  syntax ReturnInst ::= LoadedReturnInst
+
+  syntax LoadedRevertInst ::= "revert" Constant
+  syntax KResult ::= LoadedRevertInst
+  syntax RevertInst ::= LoadedRevertInst
+
+  syntax LoadedLogInst ::= "log" Constant
+                         | "log" Constant "," Ints
+  syntax KResult ::= LoadedLogInst
+  syntax LogInst ::= LoadedLogInst
+
+  syntax LoadedCreateInst ::= LValue "," LValue "=" "create"     IeleName "(" Ints ")" "send" Constant
+  syntax LoadedCreateInst ::= LValue "," LValue "=" "copycreate" Constant "(" Ints ")" "send" Constant
+  syntax KResult ::= LoadedCreateInst
+  syntax CreateInst ::= LoadedCreateInst
+
+  syntax LoadedSelfdestructInst ::= "selfdestruct" Constant
+  syntax KResult ::= LoadedSelfdestructInst
+  syntax SelfdestructInst ::= LoadedSelfdestructInst
+
+```
 
 ### Local and Network State Accessors
 

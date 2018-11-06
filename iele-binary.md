@@ -141,12 +141,14 @@ After interpreting the strings representing programs as a `WordStack`, it should
 
     syntax Bool ::= #isValidContract(WordStack)              [function]
                   | #isValidContract(WordStack, Int)         [function, klabel(isValidContractAux)]
+                  | #isValidContractHelper(WordStack, Int, Int) [function]
                   | #isValidStringTable(WordStack, Int, Int) [function]
  // -------------------------------------------------------------------
     rule #isValidContract(CODE) => #isValidContract(CODE, #sizeWordStack(CODE))
     rule #isValidContract(.WordStack, 0) => true
-    rule #isValidContract(W1 : W2 : W3 : W4 : 99 : NBITS : WS, SIZE) => #fun(DECLSIZE => SIZE -Int 4 >=Int DECLSIZE andBool #isValidStringTable(#take(DECLSIZE -Int 2, WS), NBITS, DECLSIZE -Int 2))(W1 *Int 16777216 +Int W2 *Int 65536 +Int W3 *Int 256 +Int W4)
+    rule #isValidContract(W1 : W2 : W3 : W4 : 99 : NBITS : WS, SIZE) => #isValidContractHelper(W1 : W2 : W3 : W4 : 99 : NBITS : WS, SIZE, W1 *Int 16777216 +Int W2 *Int 65536 +Int W3 *Int 256 +Int W4)
     rule #isValidContract(_, _) => false [owise]
+    rule #isValidContractHelper(W1 : W2 : W3 : W4 : 99 : NBITS : WS, SIZE, DECLSIZE) => SIZE -Int 4 >=Int DECLSIZE andBool #isValidStringTable(#take(DECLSIZE -Int 2, WS), NBITS, DECLSIZE -Int 2)
 
     rule #isValidStringTable(105 : W1 : W2 : WS, NBITS, SIZE) => SIZE -Int 3 >=Int W1 *Int 256 +Int W2 andBool #isValidStringTable(#drop(W1 *Int 256 +Int W2, WS), NBITS, SIZE -Int 3 -Int W1 *Int 256 -Int W2)
     rule #isValidStringTable(106 : W1 : W2 : WS, NBITS, SIZE) => SIZE -Int 3 >=Int W1 *Int 256 +Int W2 andBool #isValidContract(#take(W1 *Int 256 +Int W2, WS), W1 *Int 256 +Int W2) andBool #isValidStringTable(#drop(W1 *Int 256 +Int W2, WS), NBITS, SIZE -Int 3 -Int W1 *Int 256 -Int W2)
@@ -169,8 +171,8 @@ After interpreting the strings representing programs as a `WordStack`, it should
     syntax TopLevelDefinitions ::= #dasmFunctions ( WordStack , Int , Map , IeleName ) [function]
     syntax TopLevelDefinitions ::= #dasmFunction ( Bool , IeleName , IeleName , Int , WordStack , Int , Map , Instructions , K ) [function]
  // ----------------------------------------------------------------------------------------------------------------------------
-    rule #dasmFunctions(103 : W1 : W2 : W3 : W4 : WS, NBITS, FUNCS, NAME) => #dasmFunction(false, getIeleName(FUNCS [ W1 *Int 256 +Int W2 ] orDefault W1 *Int 256 +Int W2), NAME, W3 *Int 256 +Int W4, WS, NBITS, FUNCS, .Instructions, .K)
-    rule #dasmFunctions(104 : W1 : W2 : W3 : W4 : WS, NBITS, FUNCS, NAME) => #dasmFunction(true, getIeleName(FUNCS [ W1 *Int 256 +Int W2 ] orDefault W1 *Int 256 +Int W2), NAME, W3 *Int 256 +Int W4, WS, NBITS, FUNCS, .Instructions, .K)
+    rule #dasmFunctions(103 : W1 : W2 : W3 : W4 : WS, NBITS, FUNCS, NAME) => #dasmFunction(false, getIeleName(#if W1 *Int 256 +Int W2 in_keys(FUNCS) #then FUNCS [ W1 *Int 256 +Int W2 ] #else W1 *Int 256 +Int W2 #fi), NAME, W3 *Int 256 +Int W4, WS, NBITS, FUNCS, .Instructions, .K)
+    rule #dasmFunctions(104 : W1 : W2 : W3 : W4 : WS, NBITS, FUNCS, NAME) => #dasmFunction(true,  getIeleName(#if W1 *Int 256 +Int W2 in_keys(FUNCS) #then FUNCS [ W1 *Int 256 +Int W2 ] #else W1 *Int 256 +Int W2 #fi), NAME, W3 *Int 256 +Int W4, WS, NBITS, FUNCS, .Instructions, .K)
     rule #dasmFunctions(.WordStack, NBITS, FUNCS, NAME) => .TopLevelDefinitions
 
     syntax Bool ::= #isValidFunctions(WordStack, Int, Int)           [function]
@@ -302,7 +304,7 @@ After interpreting the strings representing programs as a `WordStack`, it should
     rule #dasmInstruction ( STATICCALLDYN (ARGS, RETS), R, W, M, F, _ ) => %l(R, W, M, 0, RETS +Int 1) = staticcall %(R, W, M, 1 +Int RETS) at %(R, W, M, 3 +Int RETS) ( %o(R, W, M, 4 +Int RETS, ARGS) ) gaslimit %(R, W, M, 2 +Int RETS)
     rule #dasmInstruction ( CALL (LABEL, ARGS, RETS), R, W, M, F, _ ) => %l(R, W, M, 0, RETS +Int 1) = call @ getIeleName(F [ LABEL ]) at %(R, W, M, 2 +Int RETS) ( %o(R, W, M, 4 +Int RETS, ARGS) ) send %(R, W, M, 3 +Int RETS) , gaslimit %(R, W, M, 1 +Int RETS)
     rule #dasmInstruction ( CALLDYN (ARGS, RETS), R, W, M, F, _ ) => %l(R, W, M, 0, RETS +Int 1) = call %(R, W, M, 1 +Int RETS) at %(R, W, M, 3 +Int RETS) ( %o(R, W, M, 5 +Int RETS, ARGS) ) send %(R, W, M, 4 +Int RETS) , gaslimit %(R, W, M, 2 +Int RETS)
-    rule #dasmInstruction ( LOCALCALL (LABEL, ARGS, RETS), R, W, M, F, _ ) => %l(R, W, M, 0, RETS) = call @ getIeleName(F [ LABEL ] orDefault LABEL) ( %o(R, W, M, RETS, ARGS) )
+    rule #dasmInstruction ( LOCALCALL (LABEL, ARGS, RETS), R, W, M, F, _ ) => %l(R, W, M, 0, RETS) = call @ getIeleName(#if LABEL in_keys(F) #then F [ LABEL ] #else LABEL #fi) ( %o(R, W, M, RETS, ARGS) )
     rule #dasmInstruction ( LOCALCALLDYN (ARGS, RETS), R, W, M, F, _ ) => %l(R, W, M, 0, RETS) = call %(R, W, M, RETS) ( %o(R, W, M, 1 +Int RETS, ARGS) )
     rule #dasmInstruction ( CALLADDRESS (LABEL), R, W, M, F, _ ) => %(R, W, M, 0) = calladdress @ getIeleName(F [ LABEL ]) at %(R, W, M, 1)
 

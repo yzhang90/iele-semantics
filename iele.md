@@ -55,22 +55,24 @@ In the comments next to each cell, we explain the purpose of the cell.
                     <callFrame>
                       // The loaded state of a IELE program
                       // ----------------------------------
-                      <program>
-                        <functions>
-                          <function multiplicity="*" type="Map">
-                            <funcId>       deposit </funcId>         // The name of the function
-                            <nparams>      0       </nparams>        // The number of parameters of the function
-                            <instructions> (.Instructions .LabeledBlocks):Blocks </instructions> // The blocks of the function
-                            <jumpTable>    .Map    </jumpTable>      // Map from jump label to blocks, for branch instruction
-                            <nregs>        0       </nregs>          // Number of registers used by this function
-                          </function>
-                        </functions>
-                        <funcIds>     .Set </funcIds>                // Set of all names of functions in <functions> cell
-                        <funcLabels>  .Map </funcLabels>             // Map of integer function IDS to all function names in the <functions> cell
-                        <exported>    .Set </exported>               // Set of all names of functions defined with define public
-                        <programSize> 0    </programSize>            // Size in bytes of currently loaded contract
-                        <contractCode> .Contract </contractCode>     // Disassembled entire contract
-                      </program>
+                      <pgmDef>
+                        <program>
+                          <functions>
+                            <function multiplicity="*" type="Map">
+                              <funcId>       deposit </funcId>         // The name of the function
+                              <nparams>      0       </nparams>        // The number of parameters of the function
+                              <instructions> (.Instructions .LabeledBlocks):Blocks </instructions> // The blocks of the function
+                              <jumpTable>    .Map    </jumpTable>      // Map from jump label to blocks, for branch instruction
+                              <nregs>        0       </nregs>          // Number of registers used by this function
+                            </function>
+                          </functions>
+                          <funcIds>     .Set </funcIds>                // Set of all names of functions in <functions> cell
+                          <funcLabels>  .Map </funcLabels>             // Map of integer function IDS to all function names in the <functions> cell
+                          <exported>    .Set </exported>               // Set of all names of functions defined with define public
+                          <programSize> 0    </programSize>            // Size in bytes of currently loaded contract
+                          <contractCode> .Contract </contractCode>     // Disassembled entire contract
+                        </program>
+                      </pgmDef>
                       <callDepth>    0          </callDepth>         // Inter-contract call stack depth
                       <localCalls>   .List      </localCalls>        // Intra-contract call stack
 
@@ -81,7 +83,7 @@ In the comments next to each cell, we explain the purpose of the cell.
                       <callValue> 0     </callValue>                  // Value in funds passed to contract
 
                       // \mu_*
-                      <regs>          .Array  </regs>                 // Current values of registers
+                      <regs>          .Map    </regs>                 // Current values of registers
                       <localMem>      .Map    </localMem>             // Current values of local memory
                       <peakMemory>    0       </peakMemory>           // Maximum memory used so far in call frame
                       <currentMemory> 0       </currentMemory>        // Current memory used in call frame
@@ -347,7 +349,7 @@ Description of registers.
  // -----------------------
     rule isKResult(.Operands) => true
 
-    syntax Ints ::= lookupRegisters(Operands, Array) [function]
+    syntax Ints ::= lookupRegisters(Operands, Map) [function]
  // -----------------------------------------------------------
     rule <k> % REG:Int , OPS => lookupRegisters(% REG, OPS, REGS) ... </k> <regs> REGS </regs> <typeChecking> false </typeChecking>
     rule lookupRegisters(% REG:Int, OPS, REGS) => getInt(REGS [ REG ]) , lookupRegisters(OPS, REGS)
@@ -399,7 +401,14 @@ Some instructions require an argument to be interpreted as an address (modulo 16
     rule #addr?(REG = sha3 CELL)                                            => REG = sha3 chop(CELL)
     rule #addr?(log CELL)                                                   => log chop(CELL)
     rule #addr?(log CELL, ARGS)                                             => log chop(CELL), ARGS
-    rule #addr?(OP)                                                         => OP [owise]
+
+    rule #addr?(REG = W)                                                    => REG = W
+    rule #addr?(REG = sload INDEX)                                          => REG = sload INDEX
+    rule #addr?(REG = twos WIDTH, W)                                        => REG = twos WIDTH, W
+    rule #addr?(REG = or W0, W1)                                            => REG = or W0, W1
+    rule #addr?(REG = shift W0 , W1)                                        => REG = shift W0 , W1
+    rule #addr?(RETURNS = call LABEL ( ARGS ))                              => RETURNS = call LABEL ( ARGS )
+    rule #addr?(ret VALUES)                                                 => ret VALUES
 ```
 
 ### Internal Operations
@@ -602,7 +611,7 @@ Some checks if an opcode will throw an exception are relatively quick and done u
     rule <k> #static? [ OP ] => .                     ... </k> <regs> REGS </regs> <static> true  </static> requires notBool #changesState(OP, REGS)
     rule <k> #static? [ OP ] => #exception USER_ERROR ... </k> <regs> REGS </regs> <static> true  </static> requires         #changesState(OP, REGS)
 
-    syntax Bool ::= #changesState ( Instruction , Array ) [function]
+    syntax Bool ::= #changesState ( Instruction , Map ) [function]
  // ----------------------------------------------------------------
     rule #changesState(log _, _) => true
     rule #changesState(log _ , _, _) => true
@@ -741,7 +750,8 @@ Some operators don't calculate anything, they just manipulate the state of regis
     syntax InternalOp ::= "#load" LValue Int
                         | "#load" Int Int Int [klabel(#loadAux)]
  // ------------------------------------------------------------
-    rule <k> #load % REG VALUE => #load REG VALUE getInt(REGS [ REG ]) ... </k> <regs> REGS </regs>
+    rule <k> #load % REG VALUE => #load REG VALUE getInt(OLD) ... </k> <regs> ... REG |-> OLD ... </regs>
+    rule <k> #load % REG VALUE => #load REG VALUE 0 ... </k> <regs> REGS </regs>  requires notBool REG in_keys(REGS)
     rule <k> #load REG VALUE OLD => . ... </k> <regs> REGS => REGS [ REG <- VALUE ] </regs> <currentMemory> CURR => CURR -Int intSize(OLD) +Int intSize(VALUE) </currentMemory>
 
     syntax InternalOp ::= "#loads" LValues Ints
@@ -947,12 +957,12 @@ When execution of the callee reaches a `ret` instruction, control returns to the
     rule <k> #exec br I:Int , LABEL ~> _:Blocks => CODE ... </k> <fid> FUNC </fid> <function>... <funcId> FUNC </funcId> <jumpTable> ... LABEL |-> CODE </jumpTable> </function> requires I =/=K 0
     rule <k> #exec br 0, LABEL          => .    ... </k>
 
-    syntax LocalCall ::= "{" Blocks "|" IeleName "|" LValues "|" Array "}"
+    syntax LocalCall ::= "{" Blocks "|" IeleName "|" LValues "|" Map "}"
  // ----------------------------------------------------------------------
 
     rule <k> #exec RETURNS = call @ LABEL ( ARGS ) ~> OPS:Blocks => #loads #regRange(#sizeRegs(ARGS)) ARGS ~> #execute ... </k>
          <fid> FUNC => LABEL </fid>
-         <regs> REGS => .Array </regs>
+         <regs> REGS => .Map </regs>
          <localCalls> .List => ListItem({ OPS | FUNC | RETURNS | REGS }) ... </localCalls>
       requires notBool isIeleBuiltin(LABEL)
 
@@ -1203,14 +1213,14 @@ The various `call*` (and other inter-contract control flow) operations will be d
       ~> #transferFunds ACCTFROM ACCTTO VALUE
       ~> #mkCall ACCTFROM ACCTTO CODE FUNC GLIMIT VALUE ARGS STATIC
 
-    rule #callWithCode ACCTFROM ACCTTO <program>... <funcLabels> LBLS </funcLabels> ...</program> IDX:Int GLIMIT VALUE ARGS STATIC
-      => #pushCallStack ~> #pushWorldState ~> #pushSubstate ~> #exception FUNC_NOT_FOUND
-      requires notBool IDX in_keys(LBLS)
+//    rule rule #callWithCode ACCTFROM ACCTTO <program>... <funcLabels> LBLS </funcLabels> ...</program> IDX:Int GLIMIT VALUE ARGS STATIC
+//      => #pushCallStack ~> #pushWorldState ~> #pushSubstate ~> #exception FUNC_NOT_FOUND
+//      requires notBool IDX in_keys(LBLS)
 
-    rule #callWithCode ACCTFROM ACCTTO (<program>... <funcLabels>... IDX |-> FUNC </funcLabels> ...</program> #as CODE) IDX:Int GLIMIT VALUE ARGS STATIC
-      => #pushCallStack ~> #pushWorldState ~> #pushSubstate
-      ~> #transferFunds ACCTFROM ACCTTO VALUE
-      ~> #mkCall ACCTFROM ACCTTO CODE FUNC GLIMIT VALUE ARGS STATIC
+//    rule #callWithCode ACCTFROM ACCTTO (<program>... <funcLabels>... IDX |-> FUNC </funcLabels> ...</program> #as CODE) IDX:Int GLIMIT VALUE ARGS STATIC
+//      => #pushCallStack ~> #pushWorldState ~> #pushSubstate
+//      ~> #transferFunds ACCTFROM ACCTTO VALUE
+//      ~> #mkCall ACCTFROM ACCTTO CODE FUNC GLIMIT VALUE ARGS STATIC
 
     rule <k> #mkCall ACCTFROM ACCTTO CODE FUNC GLIMIT VALUE ARGS STATIC:Bool
           => #initVM(ARGS) ~> #initFun(FUNC, #sizeRegs(ARGS), false)
@@ -1238,7 +1248,7 @@ If the function being called is not public, does not exist, or has the wrong num
          <currentMemory> _ => 0      </currentMemory>
          <peakMemory>    _ => 0      </peakMemory>
          <output>        _ => .Ints  </output>
-         <regs>          _ => .Array </regs>
+         <regs>          _ => .Map   </regs>
          <localMem>      _ => .Map   </localMem>
          <localCalls>    _ => .List  </localCalls>
 
@@ -1415,7 +1425,7 @@ For each `call*` operation, we make a corresponding call to `#call` and a state-
 
     syntax Contract ::= #subcontract ( Contract , IeleName ) [function]
  // -------------------------------------------------------------------
-    rule #subcontract ( (contract NAME ! _ _ { _ } #as CONTRACT) _, NAME ) => CONTRACT .Contract
+//    rule #subcontract ( (contract NAME ! _ _ { _ } #as CONTRACT) _, NAME ) => CONTRACT .Contract
     rule #subcontract ( CONTRACT CONTRACTS, NAME ) => CONTRACT #subcontract(CONTRACTS, NAME) [owise]
 
     syntax KItem ::= "#codeDeposit" Int Int Contract LValue LValue Bool
