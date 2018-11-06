@@ -7,6 +7,7 @@ module VERIFICATION
 
     syntax IeleName ::= "totalSupply" [token]
                       | "balanceOf"   [token]
+                      | "allowance"   [token]
 
 
     // Temporary solution to avoid reasoning about gas
