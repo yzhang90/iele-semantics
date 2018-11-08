@@ -415,6 +415,8 @@ Some instructions require an argument to be interpreted as an address (modulo 16
     rule #addr?(br I, LABEL)                                                => br I, LABEL
     rule #addr?(RETURNS = call LABEL ( ARGS ))                              => RETURNS = call LABEL ( ARGS )
     rule #addr?(ret VALUES)                                                 => ret VALUES
+
+    rule #addr?(OP)                                                         => OP [owise]
 ```
 
 ### Internal Operations
