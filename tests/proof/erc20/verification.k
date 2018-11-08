@@ -9,6 +9,7 @@ module VERIFICATION
                       | "balanceOf"   [token]
                       | "allowance"   [token]
                       | "approve"     [token]
+                      | "transfer"    [token]
 
     // Temporary solution to avoid reasoning about gas
     syntax Int ::= "#infinity" [function]

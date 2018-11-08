@@ -23,6 +23,7 @@ erc20_files:=totalSupply-spec.k \
              transfer-success-2-spec.k \
              transfer-failure-1-spec.k \
              transfer-failure-2-spec.k \
+             transfer-failure-3-spec.k \
              transferFrom-success-1-spec.k \
              transferFrom-success-2-spec.k \
              transferFrom-failure-1-spec.k \
