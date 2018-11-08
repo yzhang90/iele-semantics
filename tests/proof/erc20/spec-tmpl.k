@@ -102,4 +102,8 @@
       <txPending> _ </txPending>          // Remaining transactions in block
       <messages> _ </messages>
     </network>
+    requires 0 <=Int ACCT_ID    andBool ACCT_ID    <Int pow160
+     andBool 0 <=Int CALLER_ID  andBool CALLER_ID  <Int pow160
+     andBool 0 <=Int ORIGIN_ID  andBool ORIGIN_ID  <Int pow160
+     {REQUIRES}
 

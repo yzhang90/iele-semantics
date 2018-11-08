@@ -404,9 +404,13 @@ Some instructions require an argument to be interpreted as an address (modulo 16
 
     rule #addr?(REG = W)                                                    => REG = W
     rule #addr?(REG = sload INDEX)                                          => REG = sload INDEX
+    rule #addr?(sstore VALUE, INDEX)                                        => sstore VALUE, INDEX
     rule #addr?(REG = twos WIDTH, W)                                        => REG = twos WIDTH, W
     rule #addr?(REG = or W0, W1)                                            => REG = or W0, W1
     rule #addr?(REG = shift W0 , W1)                                        => REG = shift W0 , W1
+    rule #addr?(REG = cmp lt W0, W1)                                        => REG = cmp lt W0, W1
+    rule #addr?(br LABEL)                                                   => br LABEL
+    rule #addr?(br I, LABEL)                                                => br I, LABEL
     rule #addr?(RETURNS = call LABEL ( ARGS ))                              => RETURNS = call LABEL ( ARGS )
     rule #addr?(ret VALUES)                                                 => ret VALUES
 ```

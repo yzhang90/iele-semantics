@@ -17,7 +17,8 @@ clean:
 erc20_files:=totalSupply-spec.k \
              balanceOf-spec.k \
              allowance-spec.k \
-             approve-spec.k \
+             approve-success-spec.k \
+             approve-fail-spec.k \
              transfer-success-1-spec.k \
              transfer-success-2-spec.k \
              transfer-failure-1-spec.k \
