@@ -27,7 +27,8 @@ erc20_files:=totalSupply-spec.k \
              transferFrom-success-1-spec.k \
              transferFrom-success-2-spec.k \
              transferFrom-failure-1-spec.k \
-             transferFrom-failure-2-spec.k
+             transferFrom-failure-2-spec.k \
+             transferFrom-failure-3-spec.k
 
 proof_tests:=erc20
 

@@ -5,11 +5,12 @@ module VERIFICATION
     imports IELE
     imports IELE-BINARY
 
-    syntax IeleName ::= "totalSupply" [token]
-                      | "balanceOf"   [token]
-                      | "allowance"   [token]
-                      | "approve"     [token]
-                      | "transfer"    [token]
+    syntax IeleName ::= "totalSupply"  [token]
+                      | "balanceOf"    [token]
+                      | "allowance"    [token]
+                      | "approve"      [token]
+                      | "transfer"     [token]
+                      | "transferFrom" [token]
 
     // Temporary solution to avoid reasoning about gas
     syntax Int ::= "#infinity" [function]

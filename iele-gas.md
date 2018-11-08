@@ -235,6 +235,7 @@ caller's registers, but that is handled in `iele.md`.
 ```k
     rule <k> #memory [ ret ARGS ] => #memoryDelta(0 -Int intSizes(REGS, NREGS) -Int Gcallmemory < SCHED >) ... </k>
          <schedule> SCHED </schedule>
+         <localCalls> ListItem(_) ... </localCalls>
          <fid> NAME </fid>
          <regs> REGS </regs>
          <funcId> NAME </funcId>
