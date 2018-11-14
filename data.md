@@ -142,7 +142,7 @@ You could alternatively calculate `I1 %Int I2`, then add one to the normal integ
 -   `bytesInWords` ocnverts a number of bytes to a number of words.
 
 ```k
-    syntax Int ::= intSize ( Int ) [function]
+    syntax Int ::= intSize ( Int ) [function, smtlib(intSize)]
  // -----------------------------------------
     rule intSize(N) => (log2Int(N) +Int 2) up/Int 64 requires N >Int 0
     rule intSize(0) => 1
